@@ -135,6 +135,7 @@ public class IncompletePaymentTransactionTask extends CompletionTaskBase<Payment
                                                                                                                   null,
                                                                                                                   null);
                 PaymentTransactionInfoPlugin paymentTransactionInfoPlugin;
+                log.debug(String.format("Invoking Janitor to fix unknown transaction from notifications for transaction_id='%s'"), undefinedPaymentTransaction.getKbTransactionPaymentId());
                 try {
                     final PaymentPluginApi paymentPluginApi = paymentPluginServiceRegistration.getPaymentPluginApi(payment.getPaymentMethodId(), false, internalTenantContext);
                     final List<PaymentTransactionInfoPlugin> result = paymentPluginApi.getPaymentInfo(payment.getAccountId(), payment.getId(), ImmutableList.<PluginProperty>of(), tenantContext);
