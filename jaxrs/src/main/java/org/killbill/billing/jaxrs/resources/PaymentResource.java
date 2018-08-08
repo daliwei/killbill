@@ -787,7 +787,9 @@ public class PaymentResource extends ComboPaymentResource {
         final Iterable<PluginProperty> transactionPluginProperties = extractPluginProperties(json.getTransactionPluginProperties());
 
         final Currency currency = paymentTransactionJson.getCurrency() == null ? account.getCurrency() : Currency.valueOf(paymentTransactionJson.getCurrency());
-        final UUID paymentId = null; // If we need to specify a paymentId (e.g 3DS authorization, we can use regular API, no need for combo call)
+        final Payment initialPayment = getPaymentByIdOrKey(null, paymentTransactionJson.getPaymentExternalKey(), transactionPluginProperties, callContext);
+        final UUID paymentId = initialPayment == null ? null : initialPayment.getId();
+
         switch (transactionType) {
             case AUTHORIZE:
                 result = paymentApi.createAuthorizationWithPaymentControl(account, paymentMethodId, paymentId, paymentTransactionJson.getAmount(), currency,
@@ -803,6 +805,10 @@ public class PaymentResource extends ComboPaymentResource {
                 result = paymentApi.createCreditWithPaymentControl(account, paymentMethodId, paymentId, paymentTransactionJson.getAmount(), currency,
                                                                    paymentTransactionJson.getPaymentExternalKey(), paymentTransactionJson.getTransactionExternalKey(),
                                                                    transactionPluginProperties, paymentOptions, callContext);
+                break;
+            case REFUND:
+                result = paymentApi.createRefundWithPaymentControl(account, paymentId, paymentTransactionJson.getAmount(), currency,
+                                                                   paymentTransactionJson.getTransactionExternalKey(), transactionPluginProperties, paymentOptions, callContext);
                 break;
             default:
                 return Response.status(Status.PRECONDITION_FAILED).entity("TransactionType " + transactionType + " is not allowed for an account").build();
